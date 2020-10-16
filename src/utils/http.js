@@ -9,6 +9,7 @@
 import axios from 'axios'; // 引入axios
 // import Qs from 'qs'; // 引入qs模块，用来序列化post类型的数据
 let myAxios = axios.create({})
+import VM from '../main'
 myAxios.defaults.headers.post['Content-Type'] = 'application/json';
 
 // http request 拦截器
@@ -16,9 +17,29 @@ myAxios.interceptors.request.use(async config => {
         /* const token = await getSync("token").then(res=>{
             return res.token
         }) */ 
-        let token = localStorage.getItem("living_token")
-        if (token) { // 判断是否存在token，如果存在的话，则每个http header都加上token
-            config.headers.authorization = decodeURI(token)  //请求头加上token
+        console.log()
+        if( config.url.search('/login')!=-1||
+            config.url.search('/register')!=-1||
+            config.url.search('/get_phone_code')!=-1||
+            config.url.search('/change_password')!=-1){
+                //...
+            }else{
+                let token = await localStorage.getItem("Token")
+                if (token) { // 判断是否存在token，如果存在的话，则T每个http header都加上token
+                    config.headers.authorization = decodeURI(token)  //请求头加上token
+                }else{
+                    console.log('未登录')
+                    return await VM.$Modal.confirm({
+                        title: '未登录',
+                        content: '您还未登录，是否前往登陆页面？',
+                        onOk: () => {
+                            VM.$router.replace('/login')
+                        },
+                        onCancel: () => {
+                            
+                        }
+                    });
+            }
         }
         return config
     },
@@ -46,11 +67,24 @@ myAxios.interceptors.response.use(
                     console.log(response.data)
                     break;
                 case 404:
-                    this.$Message['error']({
+                    VM.$Message['error']({
                         background: true,
                         content: '请求失败，请稍后再试！'
                     });
                     break;
+                    case 4040:
+                        VM.$Modal.confirm({
+                            title: '未登录',
+                            content: '您还未登录，是否前往登陆页面？',
+                            onOk: () => {
+                                VM.$router.replace('/login')
+                            },
+                            onCancel: () => {
+                                
+                            }
+                        });
+                        break;
+
                 }
         }
         return response

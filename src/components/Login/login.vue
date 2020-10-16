@@ -284,7 +284,7 @@
                     trigger: 'click',
                     arrow: 'hover'
                 },
-                imgs:[]//"banner1,banner2,banner3,banner4"
+                imgs:[banner1,banner2,banner3,banner4]//"banner1,banner2,banner3,banner4"
             }
         },
         mounted(){
@@ -350,9 +350,11 @@
                 }
                 const resultData =await requireLogin({username:this.username,password:MD5(this.password)})
                 console.log(resultData)
-                const {Token} = resultData
+                const {Token,only_id} = resultData
                 if(resultData.code == 2000){
-                    let setResult = localStorage.setItem('Token',Token)
+                    localStorage.setItem('Token',Token)
+                    localStorage.setItem('only_id',only_id)
+                    this.$store.dispatch('set_user',{...resultData})
                     this.$router.replace('/main')
                 }else{
                     return this.$Message['error']({
@@ -384,9 +386,11 @@
                     });
                 }
                 const resultData = await requireLogin({phone_number:this.phone,phone_code:this.phone_code})
-                const {Token} = resultData
+                const {Token,only_id} = resultData
                 if(resultData.code == 2004){
-                    let setResult = localStorage.setItem('Token',Token)
+                    localStorage.setItem('Token',Token)
+                    localStorage.setItem('only_id',only_id)
+                    this.$store.dispatch('set_user',{...resultData})
                     this.$router.replace('/main')
                 }else{
                     return this.$Message['error']({
@@ -497,10 +501,14 @@
                         content: resultData.msg
                     });
                 }else if(resultData.code==2003){
+                    const {Token,only_id} = resultData
+                    localStorage.setItem('Token',Token)
+                    localStorage.setItem('only_id',only_id)
                     this.$Message['success']({
                         background: true,
                         content: resultData.msg
                     });
+                    this.$store.dispatch('set_user',{...resultData})
                     return this.$router.replace('/main')
                 }
             },
