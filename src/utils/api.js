@@ -7,4 +7,6 @@ export const requireRegister = (data) => ajax('/users/register',data,'POST')
 export const requirePhoneCode = (data) => ajax('/users/get_phone_code',data,'POST')
 //修改密码
 export const requireChangePassword = (data) => ajax('/users/change_password',data,'POST')
+//请求验证用户信息
+export const requireVerifyUserInfo = (data) => ajax('/users/verify_userInfo',data)
 
