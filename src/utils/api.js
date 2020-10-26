@@ -9,4 +9,8 @@ export const requirePhoneCode = (data) => ajax('/users/get_phone_code',data,'POS
 export const requireChangePassword = (data) => ajax('/users/change_password',data,'POST')
 //请求验证用户信息
 export const requireVerifyUserInfo = (data) => ajax('/users/verify_userInfo',data)
+//获取明文密码
+export const requirePassword = (data) => ajax('/users/get_password',data);
+//修改用户信息
+export const requireChangeUserInfo = (data) => ajax('users/change_userInfo',data,'POST')
 

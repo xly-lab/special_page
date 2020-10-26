@@ -11,7 +11,7 @@
                     :arrow="setting.arrow">
                     <CarouselItem v-for="i in 4" :key='i'>
                         <div class="demo-carousel">
-                            <img class="imgs_item" :src='imgs[i-1]' alt="">   
+                            <img class="imgs_item" v-lazy='imgs[i-1]' alt="">   
                         </div>
                     </CarouselItem>
                 </Carousel>
@@ -19,7 +19,7 @@
             <div class="login_box_rigth">
                 <div class="login_box_login" v-if="type == 'login'">
                     <h1>登录</h1>
-                    <Avatar src="https://i.loli.net/2017/08/21/599a521472424.jpg" size="100"/>
+                    <Avatar :src="avatarUrl" size="100"/>
                     <div class="login_box_login_input"  v-if="login_type=='userPass'">
                         <Input clearable  v-model="username" prefix="ios-contact" placeholder="输入你的账号" style="width: auto" />
                         <Input password  v-model="password" prefix="md-bonfire" type="password" placeholder="请输入你的密码" style="width: auto" />
@@ -43,7 +43,8 @@
                 </div>
                 <div class="login_box_register" v-else-if="type=='register'">
                     <h1>注册</h1>
-                    <Avatar src="https://i.loli.net/2017/08/21/599a521472424.jpg" size="100"/>
+                    <Avatar :src="avatarUrl" size="100"/>
+
                     <div class="login_box_register_input" v-if="register_type=='user_pass'">
                         <Input v-model="username" prefix="ios-contact" placeholder="输入你的账号" clearable style="width: auto" />
                         <div class="verify_username_p" v-if="error_username">账号须满足字母开头，4-16位</div>
@@ -57,7 +58,7 @@
                         </div>
                     </div>
                     <div class="login_box_register_input" v-else>
-                        <Poptip trigger="focus" word-wrap width="200" content="注意:手机号注册将为您自动生成帐户，及帐户密码，登陆成功后前往个人中心查看">
+                        <Poptip trigger="focus" word-wrap width="200" content="注意:手机号注册将为您自动生成帐号，及帐号密码，登陆成功后前往个人中心查看">
                             <Input v-model="phone" prefix="md-bonfire"  placeholder="请输入你的手机号" clearable style="width: auto" />
                         </Poptip>
                         <div class="login_box_register_input_verify_box">
@@ -73,7 +74,7 @@
                 </div>
                 <div class="login_box_forget" v-else-if="type=='forget'">
                     <h1>修改密码</h1>
-                    <Avatar src="https://i.loli.net/2017/08/21/599a521472424.jpg" size="100"/>
+                    <Avatar :src="avatarUrl" size="100"/>
                     <div class="login_box_forget_input" v-if="show_forget_one">
                         <Input v-model="username" prefix="ios-contact" placeholder="输入你的账号" clearable style="width: auto" />
                         <Input v-model="phone" prefix="md-bonfire"  placeholder="请输入你的手机号" clearable style="width: auto" />
@@ -114,6 +115,9 @@
     import banner2 from '../../assets/imgs/banner2.jpg'
     import banner3 from '../../assets/imgs/banner3.jpg'
     import banner4 from '../../assets/imgs/banner4.jpg'
+    import avatar from '../../assets/imgs/avatar.jpg'
+    let login_flag_UP = false,login_flag_P = false, register_flag_UP = false,register_flag_P = false,
+        change_pass_flag = false
 
     import MD5 from 'js-md5'
     let timer ;
@@ -208,8 +212,10 @@
                 ctx.rotate(-deg * Math.PI / 180);
                 ctx.translate(-x, -y);
             }
+            //将生成的图形验证码放入后端存放
+            //。。。。。
             /** 绘制干扰线* */
-            for(var i = 0; i < 4; i++) {
+            for(var i = 0; i < 3; i++) {
                 ctx.strokeStyle = randomColor(40, 180);
                 ctx.beginPath();
                 ctx.moveTo(randomNum(0, this.options.width), randomNum(0, this.options.height));
@@ -217,7 +223,7 @@
                 ctx.stroke();
             }
             /** 绘制干扰点* */
-            for(var i = 0; i < this.options.width/4; i++) {
+            for(var i = 0; i < this.options.width/6; i++) {
                 ctx.fillStyle = randomColor(0, 255);
                 ctx.beginPath();
                 ctx.arc(randomNum(0, this.options.width), randomNum(0, this.options.height), 1, 0, 2 * Math.PI);
@@ -276,6 +282,7 @@
                 error_password_again:false,
                 show_bg:true,
                 show_forget_one:true,
+                avatarUrl:avatar,
                 setting: {
                     autoplay: true,
                     autoplaySpeed: 2000,
@@ -292,6 +299,8 @@
                 id : "picyzm",
                 type : "blend"
             });
+            console.log(this.$route)
+            this.type = this.$route.query.type||'login'
             this.verify_code = verifyCode.options.code.toLowerCase()
         },
         watch:{
@@ -305,37 +314,35 @@
             }
         },
         methods:{
-            //防抖
-            // _Debounce(fn,wait){
-            //     let _this = this;
-            //     return function (...args) {
-            //         if(_this.timer)clearTimeout(timer);
-            //         let nowDo = !_this.timer;
-            //         _this.timer = setTimeout(()=>{
-            //             _this.timer = null;
-            //         },wait)
-            //         if(nowDo) fn.apply(_this,args)
-            //     }
-            // },
             login(){
                 this.type='login'
                 //验证用户名，密码，验证码
             },
             async login_user_pass(){
+                if(login_flag_UP){
+                    return this.$Message['warning']({
+                        background: true,
+                        content: '正在登陆...'
+                    });
+                }
+                login_flag_UP = true
                 this.login_type = 'userPass'
                 if(this.username === ''){
+                    login_flag_UP = false
                     return this.$Message['warning']({
                         background: true,
                         content: '用户名不能为空'
                     });
                 }
                 if(this.password === ''){
+                    login_flag_UP = false
                     return this.$Message['warning']({
                         background: true,
                         content: '密码不能为空'
                     });
                 }
                 if(!this.verify_code_UP){
+                    login_flag_UP = false
                     //验证用户时候输入验证码
                     return this.$Message['warning']({
                         background: true,
@@ -343,20 +350,24 @@
                     });
                 }
                 if(this.verify_code_UP.toLowerCase()!==this.verify_code){
+                    login_flag_UP = false
                     return this.$Message['error']({
                         background: true,
                         content: '验证码输入错误'
                     });
                 }
+                login_flag_UP = false
                 const resultData =await requireLogin({username:this.username,password:MD5(this.password)})
                 console.log(resultData)
                 const {Token,only_id} = resultData
                 if(resultData.code == 2000){
+                    login_flag_UP = false
                     localStorage.setItem('Token',Token)
                     localStorage.setItem('only_id',only_id)
                     this.$store.dispatch('set_user',{...resultData})
                     this.$router.replace('/main')
                 }else{
+                    login_flag_UP = false
                     return this.$Message['error']({
                         background: true,
                         content: resultData.msg
@@ -364,35 +375,48 @@
                 }
             },
             async login_by_phone(){
+                if(login_flag_P){
+                    return this.$Message['warning']({
+                        background: true,
+                        content: '正在登路...'
+                    });
+                }
+                login_flag_P = true
                 this.login_type = 'phoneLogin'
                 let phoneVerify = /^1(3[0-9]|4[5,7]|5[0,1,2,3,5,6,7,8,9]|6[2,5,6,7]|7[0,1,7,8]|8[0-9]|9[1,8,9])\d{8}$/;
                 if(this.phone === ''){
+                    login_flag_P = false
                     return this.$Message['warning']({
                         background: true,
                         content: '手机号不能为空'
                     });
                 }
                 if(!phoneVerify.test(this.phone)){
+                    login_flag_P = false
                     return this.$Message['warning']({
                         background: true,
                         content: '手机号格式不正确'
                     });
                 }
                 if(!this.phone_code){
+                    login_flag_P = false
                     //验证用户时候输入验证码
                     return this.$Message['warning']({
                         background: true,
                         content: '验证码不能为空'
                     });
                 }
+                login_flag_P = false
                 const resultData = await requireLogin({phone_number:this.phone,phone_code:this.phone_code})
                 const {Token,only_id} = resultData
                 if(resultData.code == 2004){
+                    login_flag_P = false
                     localStorage.setItem('Token',Token)
                     localStorage.setItem('only_id',only_id)
                     this.$store.dispatch('set_user',{...resultData})
                     this.$router.replace('/main')
                 }else{
+                    login_flag_P = false
                     return this.$Message['error']({
                         background: true,
                         content: resultData.msg
@@ -404,40 +428,54 @@
                 this.type='register'
             },
             async register_user_pass(){
+                if(register_flag_UP){
+                    return this.$Message['warning']({
+                        background: true,
+                        content: '正在注册...'
+                    });
+                }
+                register_flag_UP = true
                 this.register_type = 'user_pass'
                 var userVerify = /^[a-zA-z]\w{3,15}$/;
                 var passVerify = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,20}$/;
                 if(this.username === ''){
+                    register_flag_UP = false
                     return this.$Message['warning']({
                         background: true,
                         content: '用户名不能为空'
                     });
                 }
                 if(!userVerify.test(this.username)){
+                    register_flag_UP = false
                     return this.error_username = true
                 }
                 this.error_username = false;
                 if(this.password === ''){
+                    register_flag_UP = false
                     return this.$Message['warning']({
                         background: true,
                         content: '密码不能为空'
                     });
                 }
                 if(!passVerify.test(this.password)){
+                    register_flag_UP = false
                     return this.error_password = true
                 }
                 this.error_password = false;
                 if(this.password_again === ''){
+                    register_flag_UP = false
                     return this.$Message['warning']({
                         background: true,
                         content: '二次确认密码不能为空'
                     });
                 }
                 if(this.password!==this.password_again){
+                    register_flag_UP = false
                     return this.error_password_again = true
                 }
                 this.error_password_again = false;
                 if(!this.verify_code_UP){
+                    register_flag_UP = false
                     //验证用户时候输入验证码
                     return this.$Message['warning']({
                         background: true,
@@ -445,25 +483,29 @@
                     });
                 }
                 if(this.password === ''){
+                    register_flag_UP = false
                     return this.$Message['warning']({
                         background: true,
                         content: '密码不能为空'
                     });
                 }
                 if(this.verify_code_UP.toLowerCase()!==this.verify_code){
+                    register_flag_UP = false
                     return this.$Message['error']({
                         background: true,
                         content: '验证码输入错误'
                     });
                 }
+                register_flag_UP = false
                 const resultData =await requireRegister({username:this.username,password:MD5(this.password)})
-                console.log(resultData)
                 if(resultData.code == 4004){
+                    register_flag_UP = false
                     return this.$Message['error']({
                         background: true,
                         content: resultData.msg
                     });
                 }else if(resultData.code == 2001){
+                    register_flag_UP = false
                     this.$Message['success']({
                         background: true,
                         content: resultData.msg
@@ -473,34 +515,47 @@
                 }
             },
             async register_by_phone(){
+                if(register_flag_P){
+                    return this.$Message['warning']({
+                        background: true,
+                        content: '正在注册...'
+                    });
+                }
+                register_flag_P = true
                 this.register_type = 'phone_register'
                 let phoneVerify = /^1(3[0-9]|4[5,7]|5[0,1,2,3,5,6,7,8,9]|6[2,5,6,7]|7[0,1,7,8]|8[0-9]|9[1,8,9])\d{8}$/;
                 if(this.phone === ''){
+                    register_flag_P = false
                     return this.$Message['warning']({
                         background: true,
                         content: '手机号不能为空'
                     });
                 }
                 if(!phoneVerify.test(this.phone)){
+                    register_flag_P = false
                     return this.$Message['warning']({
                         background: true,
                         content: '手机号格式不正确'
                     });
                 }
                 if(!this.phone_code){
+                    register_flag_P = false
                     //验证用户时候输入验证码
                     return this.$Message['warning']({
                         background: true,
                         content: '验证码不能为空'
                     });
                 }
+                register_flag_P = false
                 let resultData = await requireRegister({phone_number:this.phone,phone_code:this.phone_code})
                 if(resultData.code==4006 || resultData.code == 4005){
+                    register_flag_P = false
                     return this.$Message['error']({
                         background: true,
                         content: resultData.msg
                     });
                 }else if(resultData.code==2003){
+                    register_flag_P = false
                     const {Token,only_id} = resultData
                     localStorage.setItem('Token',Token)
                     localStorage.setItem('only_id',only_id)
@@ -546,30 +601,42 @@
 
             },
             async sure_modiffy(){
+                if(change_pass_flag){
+                    return this.$Message['warning']({
+                        background: true,
+                        content: '密码修改中...'
+                    });
+                }
+                change_pass_flag = true
                 let passVerify = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,20}$/;
                 if(this.password === ''){
+                    change_pass_flag = false
                     return this.$Message['warning']({
                         background: true,
                         content: '密码不能为空'
                     });
                 }
                 if(!passVerify.test(this.password)){
+                    change_pass_flag = false
                     return this.error_password = true
                 }
                 this.error_password = false;
                 if(this.password_again === ''){
+                    change_pass_flag = false
                     return this.$Message['warning']({
                         background: true,
                         content: '二次确认密码不能为空'
                     });
                 }
                 if(this.password!==this.password_again){
+                    change_pass_flag = false
                     return this.error_password_again = true
                 }
-                const resultData = await requireChangePassword({username:this.username,phone_number:this.phone,phone_code:this.phone_code,password:this.password})
-                console.log(resultData)
+                this.error_password_again = false;
+                this.error_password = false
+                change_pass_flag = false
+                const resultData = await requireChangePassword({username:this.username,phone_number:this.phone,phone_code:this.phone_code,password:MD5(this.password)})
                 if(resultData.code == 4010||resultData.code == 4011 ||resultData.code == 4013||resultData.code == 4012){//4010手机号未注册，4011帐户还未注册,4012输入验证码不正确，4013帐户与该手机号为绑定
-                    this.error_password_again = false;
                     if(resultData.code == 4011||resultData.code == 4013){
                         this.type='register'
                     }else if(resultData.code == 4010){
@@ -583,6 +650,9 @@
                         background: true,
                         content: resultData.msg
                     })
+                }else{
+                    this.show_forget_one = true
+                    this.type = 'login'
                 }
             },
             refish(){
@@ -646,7 +716,10 @@
 >>>.ivu-input{
     background-color:#78a1c685 ;
     border: 1px solid #78a1c685;
-    border-bottom: 1px solid snow;
+    border-bottom: 1px solid rgb(87,163,243);
+}
+>>>.ivu-input,>>>.ivu-btn-small,>>>.ivu-btn{
+    border-radius: 0;
 }
 .login_container{
     background-image :url('../../assets/imgs/move_bg_2.jpg');
