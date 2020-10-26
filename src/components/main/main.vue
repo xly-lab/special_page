@@ -37,21 +37,15 @@
                     <Icon type="ios-construct" />
                     还没想好
                 </MenuItem>
-                <!-- <MenuItem name="7" class="personal">
-                    <Avatar  style="background-color: #87d068" icon="ios-person" />
-                    <p class="main_container_nav_login_p" @click="goToLogin" v-if="!userinfo.username">登录</p>
-                    <p class="main_container_nav_username_p" @click="goToPersonal" v-else>{{userinfo.username}}</p>
-                </MenuItem> -->
                 <Submenu name="7">
                     <template slot="title">
-                        <Avatar  style="background-color: #87d068" icon="ios-person" />
+                        <Avatar  :src="avatar" />
                         <p class="main_container_nav_login_p" @click="goToLogin" v-if="!(getUserInfo&&getUserInfo.username)">登录</p>
                         <p class="main_container_nav_username_p"  v-else>{{getUserInfo.username}}</p>
                     </template>
                     <MenuGroup title="设置">
                         <MenuItem name="7-1" >个人中心</MenuItem>
-                        <!-- <MenuItem name="3-2">活跃分析</MenuItem>
-                        <MenuItem name="3-3">时段分析</MenuItem> -->
+                        <MenuItem name="7-2" >退出</MenuItem>
                     </MenuGroup>
                 </Submenu>
             </Menu>
@@ -61,15 +55,18 @@
 
 <script>
 import {height} from '../../utils/common'
+import avatar from '../../assets/imgs/avatar.jpg'
+
+// import {mapState} from 'vuex'
 export default {
     data(){
         return{
             height,
-            userinfo:{}
+            userinfo:{},
+            avatar
         }
     },
     mounted(){
-        console.log(this.$store.state.userinfo)
         const {userinfo} = this.$store.state.userinfo;
         this.userinfo=userinfo
     },
@@ -80,20 +77,34 @@ export default {
     },
     methods:{
         selectNav(name){
+            let _this = this;
             if(name == '7-1'&&!this.getUserInfo.username){
                 return this.$Modal.confirm({
                     title: '未登录',
                     content: '您还未登录，是否前往登陆页面？',
                     onOk: () => {
-                        _this.$router.replace('/login')
+                        _this.$router.push('/login')
                     },
                     onCancel: () => {
                         
                     }
                 });
             }
-            if(name == '7-1'){
+            if(name == '7-1'&&this.getUserInfo.username){
                 this.goToPersonal()
+            }
+            if(name == '7-2'){
+                return this.$Modal.confirm({
+                    title: '确认？',
+                    content: '是否要退出？',
+                    onOk: () => {
+                        localStorage.removeItem('Token')
+                        localStorage.removeItem('only_id')
+                        _this.$router.push('/login')
+                    },
+                    onCancel: () => {
+                    }
+                });
             }
         },
         goToLogin(){
@@ -112,12 +123,19 @@ export default {
     float: right;
 }
 >>>.ivu-avatar{
-    padding-left: 7px;
 }
 .main_container_nav_login_p,.main_container_nav_username_p{
     display: inline-block;
     margin-left: 5px;
-    color: rgb(109, 192, 224);
+    color:#2d8cf0;
+}
+.main_container_nav_username_p{
+    word-break: break-all;
+    overflow:hidden; /* / 超出的文本隐藏*/
+    text-overflow:ellipsis; /** / 溢出用省略号显示*/
+    white-space:nowrap; /** / 溢出不换行*/
+    max-width: 80px;
+    display: inline-flex;
 }
 </style>>
 

@@ -17,7 +17,6 @@ myAxios.interceptors.request.use(async config => {
         /* const token = await getSync("token").then(res=>{
             return res.token
         }) */ 
-        console.log()
         if( config.url.search('/login')!=-1||
             config.url.search('/register')!=-1||
             config.url.search('/get_phone_code')!=-1||
@@ -28,7 +27,6 @@ myAxios.interceptors.request.use(async config => {
                 if (token) { // 判断是否存在token，如果存在的话，则T每个http header都加上token
                     config.headers.authorization = decodeURI(token)  //请求头加上token
                 }else{
-                    console.log('未登录')
                     return await VM.$Modal.confirm({
                         title: '未登录',
                         content: '您还未登录，是否前往登陆页面？',
@@ -44,6 +42,10 @@ myAxios.interceptors.request.use(async config => {
         return config
     },
     err => {
+        VM.$Message['error']({
+            background: true,
+            content: err.toString()
+        })
         return Promise.reject(err)
     }
 )
@@ -52,7 +54,6 @@ myAxios.interceptors.request.use(async config => {
 myAxios.interceptors.response.use(
     response => {
         //拦截响应，做统一处理 
-        console.log(response)
         if (response.data.code) {
             switch (response.data.code) {
                 case 2001://注册成功
@@ -91,8 +92,10 @@ myAxios.interceptors.response.use(
     },
     //接口错误状态处理，也就是说无响应时的处理
     error => {
-        console.log(typeof error)
-        console.log(error.toString())
+        VM.$Message['error']({
+            background: true,
+            content: error.toString()
+        })
         return Promise.reject(error) // 返回接口返回的错误信息
     }
 )
